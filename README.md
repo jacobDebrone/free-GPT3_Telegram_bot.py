@@ -26,7 +26,31 @@ MessageHandler
     __init__(self, bot, openai_api): Initializes the MessageHandler object with a Telegram bot and an OpenAIAPI object.
     handle_user_message(self, user_id, user_input): Handles incoming user messages, adds them to the conversation history.
     handle_ai_response(self, user_id, ai_response): Handles AI responses, adds them to the conversation history, and sends them to the user.
+Prerequisites
 
+    Python 3.x
+    Telebot library (pip install pyTelegramBotAPI)
+    Requests library (pip install requests)
+
+Setup
+
+    Replace 'YOUR_BOT_TOKEN' with your actual bot token from BotFather.
+
+    python
+
+bot_token = 'YOUR_BOT_TOKEN'
+
+Ensure the required Python libraries are installed.
+
+bash
+
+pip install pyTelegramBotAPI requests
+
+Run the script.
+
+bash
+
+python your_script_name.py
 Telegram Bot Setup
 
     Create a new bot on Telegram using BotFather.
@@ -42,3 +66,4 @@ Note
   
 
 Feel free to reach out if you have any questions or suggestions! 🚀✨
+for other usecases of the API contact https://github.com/voidevs 
