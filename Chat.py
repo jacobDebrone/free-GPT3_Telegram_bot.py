@@ -1,72 +1,55 @@
 import telebot
 import requests
-import json
-import time
-import traceback
-
-class OpenAIAPI:
-    def __init__(self, url, model):
-        self.url = url
-        self.model = model
-
-    def generate_response(self, messages):
-        try:
-            data = {'model': self.model, 'stream': False, 'messages': messages}
-            response = requests.post(self.url, json=data)
-
-            if response.status_code == 200:
-                return response.json()
-            else:
-                print(f"Error: {response.status_code}, {response.text}")
-                return False
-
-        except requests.exceptions.RequestException as e:
-            print(f"Error: {e}")
-            return False
-
-class MessageHandler:
-    def __init__(self, bot, openai_api):
-        self.bot = bot
-        self.openai_api = openai_api
-        self.user_messages = {}
-
-    def handle_user_message(self, user_id, user_input):
-        if user_id not in self.user_messages:
-            system_message = {'role': 'system', 'content': f'You are a helpful assistant and your name is Debrone for user {user_id}, and you are very logical and very scientific yet very kind'}
-            self.user_messages[user_id] = [system_message]
-
-        new_message = {'role': 'user', 'content': user_input}
-        self.user_messages[user_id].append(new_message)
-        self.bot.send_chat_action(user_id, 'typing')
-
-    def handle_ai_response(self, user_id, ai_response):
-        if user_id in self.user_messages:
-            new_message = {'role': 'ai', 'content': ai_response}
-            self.user_messages[user_id].append(new_message)
-            self.bot.send_message(user_id, f'.: {ai_response}')
 
 # Replace 'YOUR_BOT_TOKEN' with your actual bot token from BotFather
-bot_token = 'Your_telegram_bot_token'
-bot = telebot.TeleBot(bot_token)
+bot = telebot.TeleBot('telegram_bot_token')
 
 url = 'https://api.voidevs.com/v1/ai/chat/completions'
 model = 'gpt-3.5-turbo-0613'
 
-openai_api = OpenAIAPI(url, model)
-message_handler = MessageHandler(bot, openai_api)
+# Initialize a dictionary to store the last 5 messages for each user
+user_conversations = {}
+
+def get_initial_system_message():
+    return [{'role': 'system', 'content': 'You are a character in a dialogue and your name is Debrone, and you are very logical  and very scientific yet very kind you engage in infomative and tech related conversations'}]
 
 @bot.message_handler(func=lambda message: True)
 def handle_messages(message):
-    user_id = message.chat.id
+    user_id = message.from_user.id
     user_input = message.text
 
-    message_handler.handle_user_message(user_id, user_input)
-    result = openai_api.generate_response(message_handler.user_messages[user_id])
+    # Retrieve or initialize conversation history for the user
+    user_history = user_conversations.get(user_id, get_initial_system_message())
+    
+    # Keep only the last 4 user messages (and the initial system message)
+    user_history = user_history[-4:]
+    
+    new_message = {'role': 'user', 'content': user_input}
+    user_history.append(new_message)
 
+    # Update the user's conversation history in the dictionary
+    user_conversations[user_id] = user_history
+
+    bot.send_chat_action(message.chat.id, 'typing')
+
+    result = chat(model, user_history)
     if result and result['result']:
-        message_handler.handle_ai_response(user_id, result['content'])
+        bot.send_message(message.chat.id, f' {result["content"]}')
+def chat(model, messages):
+    try:
+        data = {'model': model, 'stream': False, 'messages': messages}
 
+        response = requests.post(url, json=data)
 
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"Error: {response.status_code}, {response.text}")
+            return False
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        return False
 def reconnect_and_handle_errors():
     global bot
     while True:
