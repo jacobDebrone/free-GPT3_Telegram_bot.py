@@ -1,71 +1,70 @@
-import telebot
+######
 import requests
+import json
+import telebot
+import time
 
-# Replace 'YOUR_BOT_TOKEN' with your actual bot token from BotFather
-bot = telebot.TeleBot('telegram_bot_token')
+# Set up the Telegram Bot API token (replace 'YOUR_BOT_TOKEN' with your actual token)
+bot_token = 'YOUR_BOT_TOKEN'
+bot = telebot.TeleBot(bot_token)
 
-url = 'https://api.voidevs.com/v1/ai/chat/completions'
-model = 'gpt-3.5-turbo-0613'
+# OpenAI API URL
+openai_url = 'https://api.voidevs.com/v1/ai/chat/completions'
 
-# Initialize a dictionary to store the last 5 messages for each user
-user_conversations = {}
+# Default model and messages
+model = 'gpt-3.5-turbo-1106'
+user_messages = {}
 
-def get_initial_system_message():
-    return [{'role': 'system', 'content': 'You are a character in a dialogue and your name is Debrone, and you are very logical  and very scientific yet very kind you engage in infomative and tech related conversations'}]
 
-@bot.message_handler(func=lambda message: True)
-def handle_messages(message):
-    user_id = message.from_user.id
-    user_input = message.text
-
-    # Retrieve or initialize conversation history for the user
-    user_history = user_conversations.get(user_id, get_initial_system_message())
-    
-    # Keep only the last 4 user messages (and the initial system message)
-    user_history = user_history[-4:]
-    
-    new_message = {'role': 'user', 'content': user_input}
-    user_history.append(new_message)
-
-    # Update the user's conversation history in the dictionary
-    user_conversations[user_id] = user_history
-
-    bot.send_chat_action(message.chat.id, 'typing')
-
-    result = chat(model, user_history)
-    if result and result['result']:
-        bot.send_message(message.chat.id, f' {result["content"]}')
-def chat(model, messages):
+# Function to handle OpenAI chat requests
+def chat_with_openai(user_id, messages):
     try:
         data = {'model': model, 'stream': False, 'messages': messages}
-
-        response = requests.post(url, json=data)
+        response = requests.post(openai_url, json=data)
 
         if response.status_code == 200:
             return response.json()
         else:
-            print(f"Error: {response.status_code}, {response.text}")
+            print(f"OpenAI Error: {response.status_code}, {response.text}")
             return False
 
     except requests.exceptions.RequestException as e:
-        print(f"Error: {e}")
+        print(f"OpenAI Error: {e}")
         return False
-def reconnect_and_handle_errors():
-    global bot
+
+
+# Function to get user input from Telegram
+@bot.message_handler(func=lambda message: True)
+def get_user_input(message):
+    user_id = message.from_user.id
+
+    if user_id not in user_messages:
+        user_messages[user_id] = []
+
+    user_message = {'role': 'user', 'content': message.text}
+    user_messages[user_id].append(user_message)
+
+    # Simulate typing
+    bot.send_chat_action(message.chat.id, 'typing')
+    time.sleep(2)  # Simulate typing for 2 seconds (adjust as needed)
+
+    # Chat with OpenAI
+    result = chat_with_openai(user_id, user_messages[user_id])
+
+    # Print OpenAI response
+    if result['result']:
+        bot.reply_to(message, result['content'])
+    else:
+        bot.reply_to(message, str(result))
+def run_bot():
     while True:
         try:
-            bot.stop_polling()
-            bot = telebot.TeleBot(bot_token)
-            bot.infinity_polling(timeout=30, long_polling_timeout=5)
+            bot.polling(none_stop=True)
         except Exception as e:
-            print(f"Reconnection failed: {e}")
-            traceback.print_exc()
-            time.sleep(10)  # Add a longer delay before attempting to reconnect again
+            print(f"Error: {e}")
+            # Wait for a short time before attempting to restart
+            time.sleep(5)
+
 
 # Start the bot
-try:
-    bot.infinity_polling(timeout=30, long_polling_timeout=5)
-except Exception as e:
-    print(f"An error occurred: {e}")
-    traceback.print_exc()
-    reconnect_and_handle_errors()
+run_bot()
