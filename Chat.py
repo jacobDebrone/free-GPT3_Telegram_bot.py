@@ -1,18 +1,19 @@
-######
 import requests
 import json
 import telebot
 import time
+from gtts import gTTS
+import os
 
 # Set up the Telegram Bot API token (replace 'YOUR_BOT_TOKEN' with your actual token)
-bot_token = 'YOUR_BOT_TOKEN'
+bot_token = '6040822764:AAEcbQFQYlDT9GDGYgsagFqIpZlZiEIksuw'
 bot = telebot.TeleBot(bot_token)
 
 # OpenAI API URL
 openai_url = 'https://api.voidevs.com/v1/ai/chat/completions'
 
 # Default model and messages
-model = 'gpt-3.5-turbo-1106'
+model = 'gpt-3.5-turbo'
 user_messages = {}
 
 
@@ -33,6 +34,12 @@ def chat_with_openai(user_id, messages):
         return False
 
 
+# Function to convert text to speech using gTTS and save as MP3
+def text_to_speech_and_save(text, filename='output.mp3'):
+    tts = gTTS(text=text, lang='en', slow=False)
+    tts.save(filename)
+
+
 # Function to get user input from Telegram
 @bot.message_handler(func=lambda message: True)
 def get_user_input(message):
@@ -44,6 +51,10 @@ def get_user_input(message):
     user_message = {'role': 'user', 'content': message.text}
     user_messages[user_id].append(user_message)
 
+    # Include a custom prompt (if needed)
+    custom_prompt = {'role': 'assistant', 'content': 'Your custom prompt goes here.'}
+    user_messages[user_id].append(custom_prompt)
+
     # Simulate typing
     bot.send_chat_action(message.chat.id, 'typing')
     time.sleep(2)  # Simulate typing for 2 seconds (adjust as needed)
@@ -53,9 +64,23 @@ def get_user_input(message):
 
     # Print OpenAI response
     if result['result']:
+        # Send text response
         bot.reply_to(message, result['content'])
+
+        # Save text response as MP3
+        text_to_speech_and_save(result['content'])
+
+        # Send MP3 as audio file
+        audio_file = open('output.mp3', 'rb')
+        bot.send_audio(message.chat.id, audio_file)
+        audio_file.close()
+
+        # Optionally, you can remove the saved MP3 file after sending
+        os.remove('output.mp3')
     else:
         bot.reply_to(message, str(result))
+
+
 def run_bot():
     while True:
         try:
