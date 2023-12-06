@@ -1,5 +1,5 @@
 free chatgpt telegram bot
-Powered by free chatgpt API
+Powered by free chatgpt API with Text to speech
 Overview
 
 This Python script implements a chatbot using the Telebot library for Telegram and the OpenAI GPT-3.5 Turbo model for natural language processing. The chatbot engages in conversations with users, processing their input and generating responses through a free chatgpt API.
