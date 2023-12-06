@@ -7,8 +7,12 @@ This Python script implements a chatbot using the Telebot library for Telegram a
 How to Use
 
     Replace 'YOUR_BOT_TOKEN' with your actual Telegram bot token obtained from BotFather.
-    Ensure the required libraries (telebot, requests, json, time, and traceback) are installed.
+    Ensure the required libraries (telebot, requests, and gTTS) are installed.
+
+    run pip install -r requirements.txt
     Run the script
+
+    
 
     Python 3.x
     Telebot library (pip install pyTelegramBotAPI)
