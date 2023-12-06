@@ -13,7 +13,7 @@ bot = telebot.TeleBot(bot_token)
 openai_url = 'https://api.voidevs.com/v1/ai/chat/completions'
 
 # Default model and messages
-model = 'gpt-3.5-turbo'
+model = 'gpt-3.5-turbo'# you can also set it as gpt-3.5-turbo-1106#
 user_messages = {}
 
 
