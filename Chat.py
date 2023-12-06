@@ -6,7 +6,7 @@ from gtts import gTTS
 import os
 
 # Set up the Telegram Bot API token (replace 'YOUR_BOT_TOKEN' with your actual token)
-bot_token = '6040822764:AAEcbQFQYlDT9GDGYgsagFqIpZlZiEIksuw'
+bot_token = 'YOUR_BOT_TOKEN'
 bot = telebot.TeleBot(bot_token)
 
 # OpenAI API URL
