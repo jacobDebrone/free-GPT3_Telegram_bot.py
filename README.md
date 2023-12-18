@@ -52,4 +52,5 @@ Note
   
 
 Feel free to reach out if you have any questions or suggestions! 🚀✨
-for other usecases of the API contact https://github.com/voidevs 
+for other usecases of the API contact https://github.com/voidevs
+Dont forget to star my repo , am just starting out in python and I would really appreciate the support
